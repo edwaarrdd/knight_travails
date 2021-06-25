@@ -1,5 +1,5 @@
 class Node
-    attr_accessor :value, :tlt, :trt, :tll, :trr, :blb, :brb, :brr, :bll
+    attr_accessor :value, :prev, :tlt, :trt, :tll, :trr, :blb, :brb, :brr, :bll
     def initialize(value, prev = nil, tlt = nil, trt = nil, tll = nil, trr = nil, blb = nil, brb = nil, bll = nil, brr = nil)
         @value = value
         @prev = prev
@@ -15,8 +15,8 @@ class Node
 end
 
 class Knight
-    attr_accessor :root, :level_array
-    @@max_moves = 0 
+    attr_accessor :root, :level_array, :moves
+    @@max_moves = 8
 
     @@possible_moves = {
         :tlt => [-1, 2],
@@ -31,48 +31,63 @@ class Knight
 
     def initialize(start, finish)
         @root = Node.new(start)
+        @moves = 0
         @level_queue = []
         @level_array = []
+        @node_array = []
+        @final_array = []
+        @arr = [@root]
+        make_board()
         add_moves(@root)
         level_order_find(@root, finish)
     end
 
+    def make_board()
+        @board = Array.new (8) { Array.new(8) }
+        @board.each_with_index do |row, row_index|
+            row.map!.with_index {|x,y| [row_index, y]}
+        end        
+        @board.flatten!(1)
+    end
+
     def add_moves(root)
-        @arr = []
         @@possible_moves.each do |k, v|
             if root.public_send(k) == nil
                 x_coord = root.value[0] + v[0]
                 y_coord = root.value[1] + v[1]
-                if x_coord <= 8 && x_coord >= 0 && y_coord <=8 && y_coord >= 0
+                if @board.reject! {|x,y| x== x_coord && y ==y_coord}
                     if k == :tlt
-                        root.tlt = Node.new([x_coord, y_coord], root.value)
-                        @arr.push([x_coord, y_coord])
+                        root.tlt = Node.new([x_coord, y_coord], root)
+                        @arr.push(root.tlt)
                     elsif k == :trt
-                        root.trt = Node.new([x_coord, y_coord], root.value)
-                        @arr.push([x_coord, y_coord])
+                        root.trt = Node.new([x_coord, y_coord], root)
+                        @arr.push(root.trt)
                     elsif k == :tll
-                        root.tll = Node.new([x_coord, y_coord], root.value)
-                        @arr.push([x_coord, y_coord])
+                        root.tll = Node.new([x_coord, y_coord], root)
+                        @arr.push(root.tll)
                     elsif k == :trr
-                        root.trr = Node.new([x_coord, y_coord], root.value)
-                        @arr.push([x_coord, y_coord])
+                        root.trr = Node.new([x_coord, y_coord], root)
+                        @arr.push(root.trr)
                     elsif k == :brb
-                        root.brb = Node.new([x_coord, y_coord], root.value)
-                        @arr.push([x_coord, y_coord])
+                        root.brb = Node.new([x_coord, y_coord], root)
+                        @arr.push(root.brb)
                     elsif k == :blb
-                        root.blb = Node.new([x_coord, y_coord], root.value)
-                        @arr.push([x_coord, y_coord])
+                        root.blb = Node.new([x_coord, y_coord], root)
+                        @arr.push(root.blb)
                     elsif k == :bll
-                        root.bll = Node.new([x_coord, y_coord], root.value)
-                        @arr.push([x_coord, y_coord])
-                    elsif k == :brr
-                        root.brr = Node.new([x_coord, y_coord], root.value)
-                        @arr.push([x_coord, y_coord])
+                        root.bll = Node.new([x_coord, y_coord], root)
+                        @arr.push(root.bll)
                     else
-                        puts "does not exist"
+                        root.brr = Node.new([x_coord, y_coord], root)
+                        @arr.push(root.brr)
                     end
                 end
-            end
+            end 
+        end
+        @arr.shift()
+        @moves += 1 
+        if @moves < 64
+            add_moves(@arr[0])
         end
     end
 
@@ -82,10 +97,10 @@ class Knight
             return
         else
             @level_queue.push(node)
-            if node == finish
             while @level_queue != []
                 node = @level_queue[0]
                 @level_array.push(node.value)
+                @node_array.push(node)
                 if node.tlt != nil
                     @level_queue.push(node.tlt)
                 end
@@ -112,21 +127,28 @@ class Knight
                 end
                 @level_queue.shift(1)
             end
-            puts @level_array
+            # puts @level_array
             if @level_array.include?(finish)
-                puts "found"
+                puts "Found"
+                @location =  @level_array.index(finish)
+                @final_node = @node_array[@location]
+                puts "Final Result:"
+                @final_array.unshift(@final_node.value)
+                while @final_node.prev != nil
+                    @final_array.unshift(@final_node.prev.value)
+                    @final_node = @final_node.prev
+                end
+                print @final_array
             else
-                puts "not found"
+                puts "Not found"
             end
-            return @level_array
         end
     end
 end
-
 
 def knights_moves(start, finish)
     knight = Knight.new(start, finish)
 end
 
-knights_moves([3,4], [5,5])
+knights_moves([0,0], [0,1])
 
