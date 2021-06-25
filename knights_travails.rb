@@ -132,12 +132,13 @@ class Knight
                 puts "Found"
                 @location =  @level_array.index(finish)
                 @final_node = @node_array[@location]
-                puts "Final Result:"
+                
                 @final_array.unshift(@final_node.value)
                 while @final_node.prev != nil
                     @final_array.unshift(@final_node.prev.value)
                     @final_node = @final_node.prev
                 end
+                puts "You made it in #{@final_array.length} moves! Here's your path: "
                 print @final_array
             else
                 puts "Not found"
